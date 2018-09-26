@@ -2,6 +2,7 @@ import tkinter as tk
 import tkinter.messagebox 
 import PIL.Image, PIL.ImageTk
 from board import *
+from tkinter.font import Font
 
 
 class coin():
@@ -46,7 +47,6 @@ root.geometry('{0}x{0}'.format(width,height))
 root.title('Ludo')
 app = LudoBoard(root)
 app.create(root)
-
 colors = []
 colors.append(position_coin(2.5*Board.SQUARE_SIZE, 2.2*Board.SQUARE_SIZE, color='blue', id=0))
 colors.append(position_coin(2.5*Board.SQUARE_SIZE, 11.2*Board.SQUARE_SIZE, color='red', id=1))
@@ -69,4 +69,14 @@ tkinter.messagebox.showinfo('Welcome to Ludo', welcome_msg)
 top = tk.Toplevel(root)
 top.geometry('800x800+{}+{}'.format(width//2 - 400, height//2 - 400))
 root.protocol("WM_DELETE_WINDOW", on_closingroot)
-top.mainloop()
+
+def create_entry_page():
+    v = tk.IntVar()
+    myFont = Font(family="Times New Roman", size=14)
+    tk.Label(top,text="Select number of players",font=("Helvetica", 30),pady=60).pack()
+    tk.Radiobutton(top, text="Two",selectcolor='#42E123', background='#2390E1', activebackground='#42E123',variable=v, font=myFont,value=1, indicatoron=0,width= 40,height=5).place(x=210,y=200)
+    tk.Radiobutton(top, text="Three", selectcolor='#42E123',background='#2390E1',activebackground='#42E123',variable=v,font=myFont, value=2, indicatoron=0,width= 40,height=5).place(x=210,y=320)
+    tk.Radiobutton(top, text="Four", selectcolor='#42E123',background='#2390E1',activebackground='#42E123',variable=v,font=myFont, value=3,  indicatoron=0,width= 40,height=5).place(x=210,y=440)
+    tk.Button(top, text='Play',bg = '#E3F09B',activebackground = '#DDF45B', width=20, height=2).place(x=300,y=600)
+create_entry_page()
+root.mainloop()
