@@ -3,34 +3,103 @@ import tkinter.messagebox
 import PIL.Image, PIL.ImageTk
 from board import *
 from tkinter.font import Font
+from gameconfig import *
+from random import choice
 
 
 class coin():
-    def __init__(self,master, x, y, color,id) :
+    def __init__(self,master, x, y, path_list,color,id) :
         self.canvas = master
         self.id = id
         self.cur_x = x
         self.cur_y = y
         self.jail_x = x
         self.jail_y = y
+        self.path_list = path_list
+        self.my_turn = False
         self.icoin = PIL.Image.open("./images/{}.png".format(color))
         self.coin = PIL.ImageTk.PhotoImage(self.icoin)
         self.img = self.canvas.create_image(x, y, anchor=tk.NW, image=self.coin)
+        self.canvas.tag_bind(self.img, '<1>', self.moveCoin)
         self.win = 0
+    
+    def moveCoin(self,event):
+        print(self.id)
+        if self.my_turn:
+            Dice.unmoved = True
+            Dice.turn = (Dice.turn + 1)%Dice.player_count
+            Dice.update_dice_position()
+    
+    def change_state(self,flag):
+        if self.id == flag:
+            self.my_turn = True
+        else:
+            self.my_turn = False
 
-def position_coin(x, y, color, id):
+class Dice:
+
+    turn=0
+    player_count=0
+    past_six = 0
+    dice_x = 340
+    dice_y = 200
+    unmoved = True
+
+    @classmethod
+    def update_dice_position(cls):
+        if cls.turn==0:
+            cls.dice_x=340
+            cls.dice_y=200
+        if cls.turn==1:
+            cls.dice_x=1480
+            cls.dice_y=200
+        if cls.turn==2:
+            cls.dice_x=1480
+            cls.dice_y=750
+        if cls.turn==3:
+            cls.dice_x=340
+            cls.dice_y=750
+        cls.img = PIL.ImageTk.PhotoImage(PIL.Image.open('./images/dice_{}.png'.format(1)))
+        cls.image_button["image"] = cls.img
+        cls.image_button.place(x=cls.dice_x, y=cls.dice_y)
+        for i in range(0,4):
+            for j in range(0,4):
+                colors[i][j].change_state(cls.turn)
+    
+    @classmethod
+    def load_dice(cls):    
+        cls.img = PIL.ImageTk.PhotoImage(PIL.Image.open('./images/dice_1.png'))
+        cls.image_button = tk.Button(root, width=100, height=100, image=cls.img,command = cls.roll)
+        cls.image_button.place(x=cls.dice_x, y=cls.dice_y)
+        for i in range(0,4):
+            colors[0][i].change_state(turn)
+    
+
+    @classmethod
+    def roll(cls):
+        if (cls.unmoved):
+            if(cls.past_six<=1):
+                face = choice(range(1,7))
+            else:
+                face = choice(range(1,6))
+            if(face == 6):
+                cls.past_six += 1
+            else:
+                cls.past_six = 0
+            cls.img = PIL.ImageTk.PhotoImage(PIL.Image.open('./images/dice_{}.png'.format(face)))
+            cls.image_button["image"] = cls.img
+            cls.unmoved = False
+        
+
+def position_coin(x, y, color, path_list,id):
     container = []
     for i in range(2):
-        tmp = coin(app.get_canvas(), x, y + i*2*Board.SQUARE_SIZE, color=color,id=id)
+        tmp = coin(app.get_canvas(), x, y + i*2*Board.SQUARE_SIZE, path_list,color=color,id=id)
         container.append(tmp)
     for i in range(2):
-        tmp = coin(app.get_canvas(), x + 2*Board.SQUARE_SIZE, y + i*2*Board.SQUARE_SIZE, color=color,id = id)
+        tmp = coin(app.get_canvas(), x + 2*Board.SQUARE_SIZE, y + i*2*Board.SQUARE_SIZE,path_list, color=color,id = id)
         container.append(tmp)
     return container
-
-
-class dice:
-    turn = 0
 
 def on_closingroot():
     if tkinter.messagebox.askokcancel("Quit", "Do you want to quit the game?"):
@@ -48,10 +117,10 @@ root.title('Ludo')
 app = LudoBoard(root)
 app.create(root)
 colors = []
-colors.append(position_coin(2.5*Board.SQUARE_SIZE, 2.2*Board.SQUARE_SIZE, color='blue', id=0))
-colors.append(position_coin(2.5*Board.SQUARE_SIZE, 11.2*Board.SQUARE_SIZE, color='red', id=1))
-colors.append(position_coin(11.5*Board.SQUARE_SIZE, 11.2*Board.SQUARE_SIZE, color='green', id=2))
-colors.append(position_coin(11.5*Board.SQUARE_SIZE, 2.2*Board.SQUARE_SIZE, color='yellow', id=3))
+colors.append(position_coin(2.5*Board.SQUARE_SIZE, 2.2*Board.SQUARE_SIZE, color='blue',path_list = path.blue_path, id=0))
+colors.append(position_coin(2.5*Board.SQUARE_SIZE, 11.2*Board.SQUARE_SIZE, color='red',path_list =  path.red_path,id=3))
+colors.append(position_coin(11.5*Board.SQUARE_SIZE, 11.2*Board.SQUARE_SIZE, color='green',path_list = path.green_path, id=2))
+colors.append(position_coin(11.5*Board.SQUARE_SIZE, 2.2*Board.SQUARE_SIZE, color='yellow',path_list = path.yellow_path, id=1))
 
 welcome_msg = ''' Welcome Champs let's get into the game of LUDO :-) \n
         Rules of the game:
@@ -66,17 +135,28 @@ However, if you roll a two, you can advance the coin by two squares and then it 
         # Best of luck #
 '''
 tkinter.messagebox.showinfo('Welcome to Ludo', welcome_msg)
-top = tk.Toplevel(root)
+top = tk.Toplevel(root,bg = "#31D3EA")
 top.geometry('800x800+{}+{}'.format(width//2 - 400, height//2 - 400))
 root.protocol("WM_DELETE_WINDOW", on_closingroot)
+turn = 0
+v = tk.IntVar()
+def startgame():
+    print("hello")
+    if v.get() >= 1 :
+        Dice.player_count = v.get() + 1
+        top.destroy()
+    else :
+        tkinter.messagebox.showinfo("Warning", "Please select number of players")
 
 def create_entry_page():
-    v = tk.IntVar()
     myFont = Font(family="Times New Roman", size=14)
-    tk.Label(top,text="Select number of players",font=("Helvetica", 30),pady=60).pack()
+    tk.Label(top,text="Select number of players",font=("Helvetica", 30),pady=60,bg = "#31D3EA").pack()
     tk.Radiobutton(top, text="Two",selectcolor='#42E123', background='#2390E1', activebackground='#42E123',variable=v, font=myFont,value=1, indicatoron=0,width= 40,height=5).place(x=210,y=200)
     tk.Radiobutton(top, text="Three", selectcolor='#42E123',background='#2390E1',activebackground='#42E123',variable=v,font=myFont, value=2, indicatoron=0,width= 40,height=5).place(x=210,y=320)
     tk.Radiobutton(top, text="Four", selectcolor='#42E123',background='#2390E1',activebackground='#42E123',variable=v,font=myFont, value=3,  indicatoron=0,width= 40,height=5).place(x=210,y=440)
-    tk.Button(top, text='Play',bg = '#E3F09B',activebackground = '#DDF45B', width=20, height=2).place(x=300,y=600)
+    tk.Button(top, text='Play',command=startgame, bg = '#FFF', width=20, height=2).place(x=300,y=600)
+
 create_entry_page()
+Dice.load_dice()
+
 root.mainloop()
