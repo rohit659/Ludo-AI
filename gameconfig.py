@@ -53,13 +53,13 @@ class Path:
         self.rotate(self.yellow_path, self.green_path)
         self.rotate(self.green_path, self.red_path)
         self.blue_path.pop()
-        self.fill_cords(self.blue_path,2 - 0.2, 7 + 0.5, 'right',-1,5)
+        self.fill_cords(self.blue_path,2 - 0.2, 7 + 0.5, 'right',-1,6)
         self.yellow_path.pop()
-        self.fill_cords(self.yellow_path,8 - 0.2, 1 + 0.5, 'down',-1,5)
+        self.fill_cords(self.yellow_path,8 - 0.2, 1 + 0.5, 'down',-1,6)
         self.green_path.pop()
-        self.fill_cords(self.green_path,14 - 0.2, 7 + 0.5, 'left',-1,5)
+        self.fill_cords(self.green_path,14 - 0.2, 7 + 0.5, 'left',-1,6)
         self.red_path.pop()
-        self.fill_cords(self.red_path,8 - 0.2, 13 + 0.5, 'up',-1,5)
+        self.fill_cords(self.red_path,8 - 0.2, 13 + 0.5, 'up',-1,6)
 
 
     def fill_cords(self,v,inix,iniy,dir,starpos,len):
