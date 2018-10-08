@@ -33,8 +33,31 @@ class coin():
             return True
         else:
             return False
+    
+    def go_to_jail(self):
+        for i in range(self.pathindex,1,-1):
+            self.pathindex -= 1
+            self.canvas.delete(self.img)
+            self.cur_x=self.path_list[self.pathindex][0]
+            self.cur_y=self.path_list[self.pathindex][1]
+            self.img=self.canvas.create_image(self.cur_x+20, self.cur_y+11, anchor=tk.NW, image=self.coin)
+            self.canvas.tag_bind(self.img, '<1>', self.moveCoin)
+            self.canvas.update()
+            sleep(0.1)
+        
+        self.canvas.delete(self.img)
+        self.cur_x=self.jail_x
+        self.cur_y=self.jail_y
+        self.img=self.canvas.create_image(self.cur_x, self.cur_y, anchor=tk.NW, image=self.coin)
+        self.canvas.tag_bind(self.img, '<1>', self.moveCoin)
+        self.canvas.update()
+        sleep(0.1)
+        self.pathindex = -1
 
     def updatecoinposition(self,cnt):
+
+        in_x = self.cur_x
+        in_y = self.cur_y
         
         for i in range(1,cnt+1):
             self.pathindex+=1
@@ -45,7 +68,24 @@ class coin():
             self.canvas.tag_bind(self.img, '<1>', self.moveCoin)
             self.canvas.update()
             sleep(0.1)
-
+        
+        if self.path_list[self.pathindex][2] == 0:
+            for i in range(0,4):
+                if i != self.id:
+                    c = 0
+                    ind = -1
+                    for j in range(0,4):
+                        if colors[i][j].cur_x == self.cur_x and colors[i][j].cur_y == self.cur_y :
+                            ind = j
+                            c += 1
+                    if c==1:
+                        colors[i][ind].go_to_jail()
+        
+        Dice.arrange_in_cell(self.cur_x,self.cur_y)
+        Dice.arrange_in_cell(in_x,in_y)
+        
+            
+    
     def moveCoin(self,event):
         #print(self.id)
         if self.my_turn and Dice.unrolled==False:
@@ -114,6 +154,34 @@ class Dice:
             for j in range(0,4):
                 colors[i][j].change_state(cls.turn)
 
+    @classmethod 
+    def arrange_in_cell(cls,x,y):
+        lst = []
+        for i in range(0,4):
+            for j in range(0,4):
+                if colors[i][j].cur_x == x and colors[i][j].cur_y == y :
+                    lst.append((i,j))
+        
+        if len(lst) > 1 :
+            for i in range(0,len(lst)-1):
+                p = lst[i][0]
+                q = lst[i][1]
+                colors[p][q].canvas.delete(colors[p][q].img)
+                colors[p][q].cur_x=colors[p][q].path_list[colors[p][q].pathindex][0]
+                colors[p][q].cur_y=colors[p][q].path_list[colors[p][q].pathindex][1]
+                colors[p][q].img=colors[p][q].canvas.create_image(colors[p][q].cur_x+4*i, colors[p][q].cur_y+11, anchor=tk.NW, image=colors[p][q].coin)
+                colors[p][q].canvas.tag_bind(colors[p][q].img, '<1>', colors[p][q].moveCoin)
+        elif len(lst) == 1:
+            p = lst[0][0]
+            q = lst[0][1]
+            colors[p][q].canvas.delete(colors[p][q].img)
+            colors[p][q].cur_x=colors[p][q].path_list[colors[p][q].pathindex][0]
+            colors[p][q].cur_y=colors[p][q].path_list[colors[p][q].pathindex][1]
+            colors[p][q].img=colors[p][q].canvas.create_image(colors[p][q].cur_x+20, colors[p][q].cur_y+11, anchor=tk.NW, image=colors[p][q].coin)
+            colors[p][q].canvas.tag_bind(colors[p][q].img, '<1>', colors[p][q].moveCoin)
+        colors[p][q].canvas.update()
+
+
     @classmethod
     def ismovePossible(cls):
         for i in range(0,4):
@@ -136,7 +204,7 @@ class Dice:
     def roll(cls):
         if (cls.unrolled):
             if(cls.past_six<=1):
-                face = choice(range(5,7))
+                face = choice(range(1,7))
             else:
                 face = choice(range(1,6))
             if(face == 6):
