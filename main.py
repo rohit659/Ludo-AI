@@ -6,6 +6,13 @@ from tkinter.font import Font
 from gameconfig import *
 from random import choice
 from time import time, sleep
+from Strategy import *
+from Attacking import *
+from Defensive import *
+from Human import *
+from RLearning import *
+from Escape import *
+from Mixed import *
 
 
 class coin():
@@ -179,7 +186,7 @@ class Dice:
             colors[p][q].cur_y=colors[p][q].path_list[colors[p][q].pathindex][1]
             colors[p][q].img=colors[p][q].canvas.create_image(colors[p][q].cur_x+20, colors[p][q].cur_y+11, anchor=tk.NW, image=colors[p][q].coin)
             colors[p][q].canvas.tag_bind(colors[p][q].img, '<1>', colors[p][q].moveCoin)
-        colors[p][q].canvas.update()
+            colors[p][q].canvas.update()
 
 
     @classmethod
@@ -268,17 +275,64 @@ However, if you roll a two, you can advance the coin by two squares and then it 
 '''
 tkinter.messagebox.showinfo('Welcome to Ludo', welcome_msg)
 top = tk.Toplevel(root,bg = "#31D3EA")
+strategytop = tk.Toplevel(root,bg = "#31D3EA")
+
 top.geometry('800x800+{}+{}'.format(width//2 - 400, height//2 - 400))
+strategytop.geometry('800x800+{}+{}'.format(width//2 - 400, height//2 - 400))
+
 root.protocol("WM_DELETE_WINDOW", on_closingroot)
 turn = 0
 v = tk.IntVar()
+
+def playgame():
+    strategytop.destroy()
+    for i in range(len(players)):
+        if players[i].get() == "Human Mode":
+            players[i] = Human()
+        elif players[i].get() == "Attacking Mode": 
+            players[i] = Attacking()
+        elif players[i].get() == "Defensive Mode": 
+            players[i] = Defensive()
+        elif players[i].get() == "Escape Mode": 
+            players[i] = Escape()
+        elif players[i].get() == "Mixed Mode": 
+            players[i] = Mixed()
+        elif players[i].get() == "Learning Mode": 
+            players[i] = RLearning()
+        
+def selectstrategy():
+    myFont = Font(family="Times New Roman", size=14)
+    tk.Label(strategytop,text="Select Strategy of players",font=("Helvetica", 30),pady=60,bg = "#31D3EA").pack()
+    
+    for i in range(Dice.player_count):
+        OPTIONS=[
+            'Human Mode',
+            'Attacking Mode',
+            'Defensive Mode',
+            'Mixed Mode',
+            'Escape Mode',
+            'Learning Mode'
+        ]
+
+        players.append(StringVar(strategytop))
+        players[i].set(OPTIONS[0]) # default value
+
+        w = OptionMenu(strategytop, players[i], *OPTIONS)
+        w.pack()
+        
+        tk.Button(strategytop, text='Play',command = playgame, bg = '#FFF', width=20, height=2).place(x=300,y=600)
+        
+    
+    
 def startgame():
     print("hello")
     if v.get() >= 1 :
         Dice.player_count = v.get() + 1
         top.destroy()
+        selectstrategy()
     else :
         tkinter.messagebox.showinfo("Warning", "Please select number of players")
+
 
 def create_entry_page():
     myFont = Font(family="Times New Roman", size=14)
@@ -286,7 +340,7 @@ def create_entry_page():
     tk.Radiobutton(top, text="Two",selectcolor='#42E123', background='#2390E1', activebackground='#42E123',variable=v, font=myFont,value=1, indicatoron=0,width= 40,height=5).place(x=210,y=200)
     tk.Radiobutton(top, text="Three", selectcolor='#42E123',background='#2390E1',activebackground='#42E123',variable=v,font=myFont, value=2, indicatoron=0,width= 40,height=5).place(x=210,y=320)
     tk.Radiobutton(top, text="Four", selectcolor='#42E123',background='#2390E1',activebackground='#42E123',variable=v,font=myFont, value=3,  indicatoron=0,width= 40,height=5).place(x=210,y=440)
-    tk.Button(top, text='Play',command=startgame, bg = '#FFF', width=20, height=2).place(x=300,y=600)
+    tk.Button(top, text='Submit',command=startgame, bg = '#FFF', width=20, height=2).place(x=300,y=600)
 
 create_entry_page()
 Dice.load_dice()
