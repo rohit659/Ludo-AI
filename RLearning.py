@@ -1,6 +1,6 @@
 from Strategy import *
-class Rlearning(Strategy):
-    def __init__(self):
-        Strategy.__init__(self)
-    def move(self):
+class RLearning(Strategy):
+    def __init__(self,name):
+        Strategy.__init__(self,name)
+    def getCoinToMove(self,idx,colors,face):
         pass

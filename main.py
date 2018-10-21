@@ -1,3 +1,9 @@
+import sys
+
+
+sys.setrecursionlimit(1000000)
+
+
 import tkinter as tk
 import tkinter.messagebox 
 import PIL.Image, PIL.ImageTk
@@ -28,14 +34,11 @@ class coin():
         self.icoin = PIL.Image.open("./images/{}.png".format(color))
         self.coin = PIL.ImageTk.PhotoImage(self.icoin)
         self.img = self.canvas.create_image(x, y, anchor=tk.NW, image=self.coin)
-        self.canvas.tag_bind(self.img, '<1>', self.moveCoin)
+        self.canvas.tag_bind(self.img, '<1>', self.moveCoinHandler)
         self.win = 0
         self.pathindex=-1
     
     def isatjail(self):
-        print('isatjail')
-        print(self.pathindex)
-
         if self.pathindex==-1 :
             return True
         else:
@@ -48,7 +51,7 @@ class coin():
             self.cur_x=self.path_list[self.pathindex][0]
             self.cur_y=self.path_list[self.pathindex][1]
             self.img=self.canvas.create_image(self.cur_x+20, self.cur_y+11, anchor=tk.NW, image=self.coin)
-            self.canvas.tag_bind(self.img, '<1>', self.moveCoin)
+            self.canvas.tag_bind(self.img, '<1>', self.moveCoinHandler)
             self.canvas.update()
             sleep(0.1)
         
@@ -56,7 +59,7 @@ class coin():
         self.cur_x=self.jail_x
         self.cur_y=self.jail_y
         self.img=self.canvas.create_image(self.cur_x, self.cur_y, anchor=tk.NW, image=self.coin)
-        self.canvas.tag_bind(self.img, '<1>', self.moveCoin)
+        self.canvas.tag_bind(self.img, '<1>', self.moveCoinHandler)
         self.canvas.update()
         sleep(0.1)
         self.pathindex = -1
@@ -72,51 +75,51 @@ class coin():
             self.cur_x=self.path_list[self.pathindex][0]
             self.cur_y=self.path_list[self.pathindex][1]
             self.img=self.canvas.create_image(self.cur_x+20, self.cur_y+11, anchor=tk.NW, image=self.coin)
-            self.canvas.tag_bind(self.img, '<1>', self.moveCoin)
+            self.canvas.tag_bind(self.img, '<1>', self.moveCoinHandler)
             self.canvas.update()
             sleep(0.1)
         
         if self.path_list[self.pathindex][2] == 0:
+            ind = -1
+            jnd = -1
+            c = 0
             for i in range(0,4):
                 if i != self.id:
-                    c = 0
-                    ind = -1
                     for j in range(0,4):
                         if colors[i][j].cur_x == self.cur_x and colors[i][j].cur_y == self.cur_y :
-                            ind = j
+                            ind = i
+                            jnd = j
                             c += 1
-                    if c==1:
-                        colors[i][ind].go_to_jail()
+            if c== 1:               
+                colors[ind][jnd].go_to_jail()
         
         Dice.arrange_in_cell(self.cur_x,self.cur_y)
         Dice.arrange_in_cell(in_x,in_y)
         
-            
-    
-    def moveCoin(self,event):
-        #print(self.id)
+    def moveCoin(self):
         if self.my_turn and Dice.unrolled==False:
             cnt=Dice.lastval
             if(self.ismovePossible(cnt)==False):
                 return
             Dice.unrolled = True
-            print(self.isatjail())
             if self.isatjail()==True and cnt==6 :
                 self.updatecoinposition(1)
             elif self.isatjail()==False:
-                print('kya')
                 self.updatecoinposition(cnt)
 
             if Dice.lastval!=6:    
                 Dice.turn = (Dice.turn + 1)%Dice.player_count
                 Dice.update_dice_position()
+            else:
+                if players[Dice.turn].strategy != "Human Mode":
+                    Dice.roll()
 
+
+    
+    def moveCoinHandler(self,event):
+        self.moveCoin()
+        
     def ismovePossible(self,cnt):
-        print('ismoveposs')
-        print(Dice.turn)
-        print(self.id)
-        print(self.pathindex)
-        print(cnt)
         if(self.pathindex == len(self.path_list) - 1):
                 return False
         if self.pathindex == -1 and cnt != 6:
@@ -160,6 +163,8 @@ class Dice:
         for i in range(0,4):
             for j in range(0,4):
                 colors[i][j].change_state(cls.turn)
+        if players[cls.turn].strategy != "Human Mode":
+            cls.roll()
 
     @classmethod 
     def arrange_in_cell(cls,x,y):
@@ -177,7 +182,7 @@ class Dice:
                 colors[p][q].cur_x=colors[p][q].path_list[colors[p][q].pathindex][0]
                 colors[p][q].cur_y=colors[p][q].path_list[colors[p][q].pathindex][1]
                 colors[p][q].img=colors[p][q].canvas.create_image(colors[p][q].cur_x+4*i, colors[p][q].cur_y+11, anchor=tk.NW, image=colors[p][q].coin)
-                colors[p][q].canvas.tag_bind(colors[p][q].img, '<1>', colors[p][q].moveCoin)
+                colors[p][q].canvas.tag_bind(colors[p][q].img, '<1>', colors[p][q].moveCoinHandler)
         elif len(lst) == 1:
             p = lst[0][0]
             q = lst[0][1]
@@ -185,7 +190,7 @@ class Dice:
             colors[p][q].cur_x=colors[p][q].path_list[colors[p][q].pathindex][0]
             colors[p][q].cur_y=colors[p][q].path_list[colors[p][q].pathindex][1]
             colors[p][q].img=colors[p][q].canvas.create_image(colors[p][q].cur_x+20, colors[p][q].cur_y+11, anchor=tk.NW, image=colors[p][q].coin)
-            colors[p][q].canvas.tag_bind(colors[p][q].img, '<1>', colors[p][q].moveCoin)
+            colors[p][q].canvas.tag_bind(colors[p][q].img, '<1>', colors[p][q].moveCoinHandler)
             colors[p][q].canvas.update()
 
 
@@ -193,7 +198,6 @@ class Dice:
     def ismovePossible(cls):
         for i in range(0,4):
             if(colors[cls.turn][i].ismovePossible(cls.lastval)):
-                    print('hi')
                     return True
         return False
 
@@ -204,7 +208,9 @@ class Dice:
         cls.image_button = tk.Button(root, width=100, height=100, image=cls.img,command = cls.roll)
         cls.image_button.place(x=cls.dice_x, y=cls.dice_y)
         for i in range(0,4):
-            colors[0][i].change_state(turn)
+            colors[0][i].change_state(cls.turn)
+        if players[cls.turn].strategy != "Human Mode":
+            cls.roll()
     
 
     @classmethod
@@ -224,6 +230,9 @@ class Dice:
             cls.image_button["image"] = cls.img
             if(cls.ismovePossible()):
                 cls.unrolled = False
+                if players[cls.turn].strategy != "Human Mode":
+                    idx = players[cls.turn].getCoinToMove(cls.turn,colors,cls.lastval)
+                    colors[cls.turn][idx].moveCoin()
             else :
                 root.update()
                 sleep(0.3)
@@ -249,8 +258,6 @@ players = []
 root = tk.Tk()
 width = root.winfo_screenwidth()
 height = root.winfo_screenheight()
-print(width)
-print(height)
 root.geometry('{0}x{0}'.format(width,height))
 root.title('Ludo')
 app = LudoBoard(root)
@@ -281,24 +288,24 @@ top.geometry('800x800+{}+{}'.format(width//2 - 400, height//2 - 400))
 strategytop.geometry('800x800+{}+{}'.format(width//2 - 400, height//2 - 400))
 
 root.protocol("WM_DELETE_WINDOW", on_closingroot)
-turn = 0
 v = tk.IntVar()
 
 def playgame():
     strategytop.destroy()
     for i in range(len(players)):
         if players[i].get() == "Human Mode":
-            players[i] = Human()
+            players[i] = Human("Human Mode")
         elif players[i].get() == "Attacking Mode": 
-            players[i] = Attacking()
+            players[i] = Attacking("Attacking Mode")
         elif players[i].get() == "Defensive Mode": 
-            players[i] = Defensive()
+            players[i] = Defensive("Defensive Mode")
         elif players[i].get() == "Escape Mode": 
-            players[i] = Escape()
+            players[i] = Escape("Escape Mode")
         elif players[i].get() == "Mixed Mode": 
-            players[i] = Mixed()
+            players[i] = Mixed("Mixed Mode")
         elif players[i].get() == "Learning Mode": 
-            players[i] = RLearning()
+            players[i] = RLearning("Learning Mode")
+    Dice.load_dice()
         
 def selectstrategy():
     myFont = Font(family="Times New Roman", size=14)
@@ -325,7 +332,6 @@ def selectstrategy():
     
     
 def startgame():
-    print("hello")
     if v.get() >= 1 :
         Dice.player_count = v.get() + 1
         top.destroy()
@@ -343,6 +349,5 @@ def create_entry_page():
     tk.Button(top, text='Submit',command=startgame, bg = '#FFF', width=20, height=2).place(x=300,y=600)
 
 create_entry_page()
-Dice.load_dice()
 
 root.mainloop()

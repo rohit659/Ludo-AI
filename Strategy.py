@@ -1,9 +1,9 @@
 from abc import ABCMeta, abstractmethod
 class Strategy(metaclass=ABCMeta):
-    def __init__(self):
-        pass
+    def __init__(self,name):
+        self.strategy = name
     @abstractmethod
-    def move(self):
+    def getCoinToMove(self,idx,colors,face):
         pass
 
 
