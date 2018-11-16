@@ -43,6 +43,12 @@ class coin():
             return True
         else:
             return False
+            
+    def isathome(self):
+        if self.pathindex  == 56:
+            return True
+        else:
+            return False      
     
     def go_to_jail(self):
         for i in range(self.pathindex,1,-1):
@@ -231,7 +237,9 @@ class Dice:
             if(cls.ismovePossible()):
                 cls.unrolled = False
                 if players[cls.turn].strategy != "Human Mode":
-                    idx = players[cls.turn].getCoinToMove(cls.turn,colors,cls.lastval)
+                    idx = players[cls.turn].getCoinToMove(cls.turn,colors,cls.lastval,no_of_players)
+                    print('error')
+                    print(idx)
                     colors[cls.turn][idx].moveCoin()
             else :
                 root.update()
@@ -305,6 +313,8 @@ def playgame():
             players[i] = Mixed("Mixed Mode")
         elif players[i].get() == "Learning Mode": 
             players[i] = RLearning("Learning Mode")
+        else:
+            players[i] = Random("Random Mode")
     Dice.load_dice()
         
 def selectstrategy():

@@ -2,7 +2,7 @@ from Strategy import *
 class Attacking(Strategy):
     def __init__(self,name):
         Strategy.__init__(self,name)
-    def getCoinToMove(self,idx,colors,face):
+    def getCoinToMove(self,idx,colors,face,noofplayers):
         minDist1 = [100,100,100,100]
         mn1 = 100
         minDist2 = [100,100,100,100]
